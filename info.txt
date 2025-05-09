@@ -1,0 +1,5 @@
+=> All building block to create NN is created in Include folder.
+=> This building block can be used in different NueroCpp project too.
+=> There is main.cpp file, which contain basic code how to use.
+=> Use batch as a input, for single input send single element in batch.
+=> Batch is nothing but vector of NueroVec.
