@@ -1,234 +1,176 @@
 #pragma once
 
-// #include "NeuroVecHelping.hpp"
+#include <random>
 #include <vector>
-#include <iostream>
+#include <ctime>
+#include <functional>
 
-/*
-    => Use array to store vector and matrix.
-    => There are two initialization method first by vector and second by size and default value.
-    => Use template to create any data type array, Not for complex type.
-    => To use more complex array can use vector.
-    => Take dataype for only scalar values, like int, float, double, long int etc.
-    => Only able to store vector and matrix, not high dim tensor.
-    => Use 1D array to store both vector and matrix, means matrix also store in 1D array.
-    => while fetching from matrix, dim1 and dim2 variable used as a size in x and y.
-    => formula to fetch and update  => array[(i * dim2) + j], when NueroVec is matrix.    
-    => Use Get and Update function to fetch and update data in array.
-    => To differentiate between matrix and vec use bool variable.
-    => For transpose use bool variable, when fetch and update change (i, j) to (j, i).
-*/
+#include "NeuroVecCore.hpp"
 
-/*
-Usage:
-
-    vector<int> data = {4,2,3};
-    NeuroVec<int> test(data);
-    test.Print(); // 4 2 3
-
-    cout << test.dim() << endl << endl; // [3]
-
-    vector<vector<int>> vec1 = {{1,2,3},{4,5,6}, {1,1,1}};
-    NeuroVec<int> test1(vec1, 3, 3);
-    test1.Print(); //1 2 3
-                   //4 5 6
-                   //1 1 1
-
-    cout << test1.dim() << endl << endl; //[3, 3]
-
-    test1.Trans();
-    test1.Print(); //1 4 1
-                   //2 5 1
-                   //3 6 1
-    cout << test1.dim() << endl << endl; //[3, 3]
-
-    mat2vecMul<int>(test1, test).Print(); // 15 21 27
-    cout << endl;
-    vec2matMul<int>(test, test1).Print(); // 17 44 9
-    scalar2vecMul<int>(2.0, test).Print(); // 8 4 6
-
-    test.Print(); //4 2 3
-    test.Print(); // 4 2 3
-    cout << endl;
-    Outer<int>(test, test).Print(); // 16 8 12
-                                    // 8 4 6
-                                    // 12 6 9
-
-    // Create marix with size (2, 3) with intial value is 0
-    NeuroVec<T> mat = NeuroVec<T>::CreateMatrix(2, 3, 0);
-*/
+// random function use time as a seed, but if two function call are simultaneously that time not increase.
+// for that reason add randCount to time, and increase randCount by one everytime.
+static int randCount = 0; 
 
 template <typename T>
-class NeuroVec
+NeuroVec<T> mat2vecMul(const NeuroVec<NeuroVec<T>> &mat, const NeuroVec<T> &vec)
 {
-public:
-    bool isMatrix = false; // To check if NueroVec for matrix
-    int len = 0; // in case of matrix dim1 * dim2
-    int dim1 = 0, dim2 = 0;
-
-    // free array
-    ~NeuroVec()
+    NeuroVec<T> res = CreateVector<T>(mat.len, 0.0);
+    for(int i = 0; i < mat.len; i++)
     {
-        delete array;
-    }
-
-    // Initialization vec
-    NeuroVec(int size, T data)
-    {
-        dim1 = size;
-        array = new T[size];
-        len = size;
-        for (int i = 0; i < len; i++)
+        T temp = 0.0;
+        for(int j = 0; j < mat[i].len; j++)
         {
-            array[i] = data;
+            temp += mat[i][j] * vec[i];
+        }
+        res[i] = temp;
+    }
+    return res;
+}
+
+template <typename T>
+NeuroVec<T> vec2matMul(const NeuroVec<T> &vec, const NeuroVec<NeuroVec<T>> &mat)
+{
+    NeuroVec<T> res = CreateVector<int>(vec.len, 0);
+    for (int i = 0; i < mat[0].len; i++)
+    {
+        T sum = 0;
+        for (int j = 0; j < mat.len; j++)
+        {
+            sum += mat[j][i] * vec[j];
+        }
+        res[i] = sum;
+    }
+    return res;
+}
+
+template <typename T>
+T vec2vecMul(const NeuroVec<T> &vec1, const NeuroVec<T> &vec2)
+{
+    T res = 0;
+    for (int i = 0; i < vec1.len; i++)
+    {
+        res += vec1[i] * vec2[i];
+    }
+    return res;
+}
+
+template <typename T>
+NeuroVec<T> scalar2vecMul(T scalar, const NeuroVec<T> &vec)
+{
+    NeuroVec<T> res = CreateVector<T>(vec.len, 0);
+    for (int i = 0; i < vec.len; i++)
+    {
+        res[i] = vec[i] * scalar;
+    }
+    return res;
+}
+
+template <typename T>
+NeuroVec<NeuroVec<T>> scalar2MatMul(T scalar, const NeuroVec<NeuroVec<T>> &mat)
+{
+    NeuroVec<NeuroVec<T>> resMat = CreateMatrix<T>(mat.len, mat[0].len, 0);
+    for (int i = 0; i < mat.len; i++)
+    {
+        for(int j = 0; j < mat[0].len; j++)
+        {
+            resMat[i][j] = scalar * mat[i][j];
         }
     }
+    return resMat;
+}
 
-    // Initialization vec using std::vector
-    NeuroVec(std::vector<T> &vec) : NeuroVec(vec.size(), 0.0)
+template<typename T>
+NeuroVec<NeuroVec<T>> HadamardOverBatch(NeuroVec<NeuroVec<T>> mat1, NeuroVec<NeuroVec<T>> mat2)
+{
+    NeuroVec<NeuroVec<T>> res = CreateMatrix<T>(mat1.len, mat1[0].len, 0);
+    for(int i = 0; i < mat1.len; i++)
     {
-        for (int i = 0; i < len; i++)
+        for(int j = 0; j < mat1[i].len; j++)
         {
-            array[i] = vec[i];
+            res[i][j]= mat1[i][j] * mat2[i][j];
         }
     }
+    return res;
+}
 
-    // Initialization matrix by std::vector
-    NeuroVec(std::vector<std::vector<T>> &mat, int x, int y)
+template <typename T>
+NeuroVec<NeuroVec<T>> Outer(const NeuroVec<T> &vec1, const NeuroVec<T> &vec2)
+{
+    NeuroVec<NeuroVec<T>> mat = CreateMatrix<T>(vec1.len, vec2.len, 0);
+    for (int i = 0; i < vec1.len; i++)
     {
-        dim1 = x; dim2 = y;
-        len = x * y;
-        array = new T[len];
-        for(int i = 0; i < x; i ++)
+        for (int j = 0; j < vec2.len; j++)
         {
-            for(int j = 0; j < y; j++)
-            {
-                array[(i * dim2) + j] = mat[i][j];
-            }
-        }
-        isMatrix = true;
-    }
-
-    // static function use to initialization matrix
-    static NeuroVec<T> CreateMatrix(int index1, int index2, T data)
-    {
-        std::vector<std::vector<T>> mat(index1, std::vector<T>(index2, data));
-        return NeuroVec<T>(mat, index1, index2);
-    }
-
-    // Only work for vec, will change to update
-    const T operator[](int index) const
-    {
-        return array[index];
-    }
-
-    // fetch matrix element at (i, j)
-    T Get(int index1, int index2)
-    {
-        if(isMatrix) // check if store array is matrix or vector
-        {
-            if(isTranspose) // if transpose change  requested index (i, j) to (j, i)
-            {
-                int temp = index1;
-                index1 = index2;
-                index2 = temp;
-            }
-            return array[(index1 * dim2) + index2]; // matrix size is (dim1 X dim2)
-        }
-        return NULL; // Give error not able to change Null to int, so remove it
-    }
-
-    // Fetch element, work for only vector
-    T Get(int index)
-    {
-        return array[index];
-    }
-
-    // return dim in std::vector, if transpose return transposed matrix dim
-    // same function used to get vector dim to
-    std::vector<int> dim()
-    {
-        std::vector<int> retrnDim;
-        if(isMatrix)
-        {
-            if(isTranspose)
-            {
-                retrnDim.push_back(dim2);
-                retrnDim.push_back(dim1);
-            }
-            else
-            {
-                retrnDim.push_back(dim1);
-                retrnDim.push_back(dim2);
-            }
-        }
-        else
-            retrnDim.push_back(dim1);
-        return retrnDim;
-    }
-
-    void Trans()
-    {
-        isTranspose = true;
-    }
-
-    // Work for both vector and matrix
-    void Print()
-    {
-        if(isMatrix)
-        {
-            int x = dim1, y = dim2;
-            if(isTranspose)
-            {
-                x = dim2; y = dim1;
-            }
-            
-            for(int i = 0; i < x; i++)
-            {
-                for(int j = 0; j < y; j++)
-                {
-                    std::cout << Get(i, j) << " ";
-                }
-                std::cout << std::endl;
-            }
-        }
-        else
-        {
-            for(int i = 0; i < len; i++)
-            {
-                std::cout << array[i] << " ";
-            }
-            std::cout << std::endl;
+            mat[i][j] = vec1[i] * vec2[j];
         }
     }
+    return mat;
+}
 
-    // update the element at index i
-    // work only for vector
-    void Update(T data, int index)
+template<typename T>
+NeuroVec<T> CreateRandomVector(int size, double mean = 0, double variance = 1.0)
+{
+    NeuroVec<T> vec = CreateVector<T>(size, 0);
+    std::random_device rd;
+    std::time_t currentTime = std::time(nullptr);
+    unsigned int uniqueNumber = static_cast<unsigned int>(currentTime) + randCount;
+    randCount++;
+    std::mt19937 gen(uniqueNumber);
+
+    std::uniform_real_distribution<> gaussian(mean, variance);
+    for(int i = 0; i < vec.len; i++)
     {
-        array[index] = data;
+        vec[i] = gaussian(gen);
     }
+    return vec;
+}
 
-    // work for matrix
-    // update value, if matrix is transposed it keep this into consider and update
-    void Update(T data, int index1, int index2)
+template<typename T>
+NeuroVec<NeuroVec<T>> CreateRandomMatrix(int row, int col, double mean = 0.0, double variance = 1.0)
+{
+    NeuroVec<NeuroVec<T>> mat = CreateMatrix<T>(row, col, 0.0);
+    std::random_device rd;
+    std::time_t currentTime = std::time(nullptr);
+    unsigned int uniqueNumber = static_cast<unsigned int>(currentTime) + randCount;
+    randCount++;
+    std::mt19937 gen(uniqueNumber);
+    std::uniform_real_distribution<> gaussian(mean, variance);
+
+    for(int i = 0; i < mat.len; i++)
     {
-        if(isMatrix)
+        for(int j = 0; j < mat[i].len; j++)
         {
-            if(isTranspose)
-            {
-                int temp = index1;
-                index1 = index2;
-                index2 = temp;
-            }
-            array[(index1 * dim2) + index2] = data;
-        }        
+            mat[i][j] = gaussian(gen);
+        }
     }
+    return mat;
+}
 
-private:
-    T *array;
-    bool isTranspose = false;
-};
+template<typename T>
+NeuroVec<NeuroVec<T>> CopyMatrix(const NeuroVec<NeuroVec<T>> &mat)
+{
+    NeuroVec<NeuroVec<T>> copyMat = CreateMatrix<T>(mat.len, mat[0].len, 0);
+    for(int i = 0; i < mat.len; i++)
+    {
+        for(int j = 0; j < mat[i].len; j++)
+        {
+            copyMat[i][j] = mat[i][j];
+        }
+    }
+    return copyMat;
+}
+
+template<typename T>
+void ApplyFunction(NeuroVec<NeuroVec<T>> &mat, function<T(T)> func)
+{
+    for(int i = 0; i < mat.len; i++)
+    {
+        for(int j = 0; j < mat[i].len; j++)
+        {
+            mat[i][j] = func(mat[i][j]);
+        }
+    }
+}
 
 template <typename T>
 std::ostream &operator<<(std::ostream &os, const std::vector<T> &vec)
@@ -243,6 +185,7 @@ std::ostream &operator<<(std::ostream &os, const std::vector<T> &vec)
                 os << ", ";
         }
         os << "]";
+        os << std::endl;
         return os;
     }
     catch (const std::exception &e)

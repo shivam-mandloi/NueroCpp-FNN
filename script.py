@@ -5,9 +5,19 @@ class RunScript:
     def __init__(self, args, filename = ""):
         self.wkDir = os.getcwd()
         self.filename = os.path.join(self.wkDir, filename)
-        self.includeDir = os.path.join(self.wkDir, "")
-        self.args = ["g++",self.filename, "-I", self.includeDir,"-o",f"main.exe"] + args
+        self.includeDir = os.path.join(self.wkDir, "Include")
+        self.args = ["g++",self.filename] + self.GetAllDir() + ["-o","main.exe"] + args
         self.startRun = [os.path.join(self.wkDir,"./main.exe")]
+
+    def GetAllDir(self):
+        dir = []
+        includeDir = [self.includeDir]
+        while(len(includeDir)):
+            folder = includeDir.pop()
+            for roots, dire, files in os.walk(folder):
+                dir.append(roots)
+        dir = ["-I" + i for i in dir]
+        return dir
 
     def PrintStatus(self, result):
         if result.returncode == 0:

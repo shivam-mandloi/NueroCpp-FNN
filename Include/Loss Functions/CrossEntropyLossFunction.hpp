@@ -1,28 +1,23 @@
 #pragma once
 
-#pragma once
-
 #include <vector>
-
 #include "NeuroVec.hpp"
-#include "NeuroVecHelping.hpp"
+#include "HelpingFunc.hpp"
 
 class CrossEntropy
 {
-public:
-    CrossEntropy()
+public:    
+    NeuroVec<double> Forward(NeuroVec<NeuroVec<double>> &predicted, NeuroVec<NeuroVec<double>> &groundTruth)
     {
-        
+        prevInput = CopyMatrix<double>(predicted);
+        prevGroundTruth = CopyMatrix<double>(groundTruth);
+        return FindCrossLoss<double>(predicted, groundTruth);
     }
 
-    std::vector<NeuroVec<double>> Forward(std::vector<NeuroVec<double>> input)
+    NeuroVec<NeuroVec<double>> Backward()
     {
-
-    }
-
-    std::vector<NeuroVec<double>> Backward(std::vector<NeuroVec<double>> input)
-    {
-        
+        return CrossBackProp<double>(prevInput, prevGroundTruth);
     }
 private:
+    NeuroVec<NeuroVec<double>> prevInput, prevGroundTruth;
 };

@@ -3,7 +3,7 @@
 #include <vector>
 
 #include "NeuroVec.hpp"
-#include "NeuroVecHelping.hpp"
+#include "CrossEntropyLossFunction.hpp"
 
 class Linear
 {

@@ -3,7 +3,6 @@
 #include <vector>
 
 #include "NeuroVec.hpp"
-#include "NeuroVecHelping.hpp"
 
 class Sofmax
 {
