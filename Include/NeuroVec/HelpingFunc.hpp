@@ -32,4 +32,3 @@ NeuroVec<NeuroVec<T>> CrossBackProp(NeuroVec<NeuroVec<T>> &predicted, NeuroVec<N
     }
     return grad;
 }
-

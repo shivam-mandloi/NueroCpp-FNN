@@ -1,7 +1,5 @@
 #pragma once
 
-#include <vector>
-
 #include "NeuroVec.hpp"
 
 class Sofmax
@@ -12,12 +10,12 @@ public:
         
     }
 
-    std::vector<NeuroVec<double>> Forward(std::vector<NeuroVec<double>> input)
+    NeuroVec<NeuroVec<double>> Forward(NeuroVec<NeuroVec<double>> input)
     {
 
     }
 
-    std::vector<NeuroVec<double>> Backward(std::vector<NeuroVec<double>> input)
+    NeuroVec<NeuroVec<double>> Backward(NeuroVec<NeuroVec<double>> input)
     {
         
     }
