@@ -8,17 +8,13 @@
 class Linear
 {
 public:
-    Linear(int inputDim, int outputDim)
+
+    NeuroVec<NeuroVec<double>> Forward(std::vector<NeuroVec<double>> input)
     {
         
     }
 
-    std::vector<NeuroVec<double>> Forward(std::vector<NeuroVec<double>> input)
-    {
-        
-    }
-
-    std::vector<NeuroVec<double>> Backward(std::vector<NeuroVec<double>> input)
+    NeuroVec<NeuroVec<double>> Backward(std::vector<NeuroVec<double>> input)
     {
 
     }

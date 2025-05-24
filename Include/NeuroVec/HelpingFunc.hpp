@@ -32,3 +32,50 @@ NeuroVec<NeuroVec<T>> CrossBackProp(NeuroVec<NeuroVec<T>> &predicted, NeuroVec<N
     }
     return grad;
 }
+
+template<typename T>
+NeuroVec<NeuroVec<T>> ReluGradFunction(NeuroVec<NeuroVec<T>> &prevGrad, NeuroVec<NeuroVec<T>> &input)
+{
+    NeuroVec<NeuroVec<T>> grad = CreateMatrix<T>(predicted.len, predicted[0].len, 0);
+    for(int i = 0; i < prevGrad.len; i++)
+    {
+        for(int j = 0; j < prevGrad[i].len; j++)
+        {
+            if(input[i][j] >= 0)
+                grad[i][j] = prevGrad[i][j];
+        }
+    }
+    return grad;
+}
+
+
+void SoftmaxCalculate(NeuroVec<NeuroVec<double>> &input)
+{
+    NeuroVec<NeuroVec<double>> grad = CreateMatrix<double>(input.len, input[0].len, 0);
+    for(int i = 0; i < input.len; i++)
+    {
+        
+        ClipMatrix<double>(input, -200.0, 200.0);
+        auto func = [&](double val)->double{return exp(val);};
+        
+        ApplyFunction<double>(input, func);
+        NeuroVec<double> deno = CreateVector<double>(input.len, 0);
+        for(int i = 0; i < deno.len; i++)
+        {
+            double temp = 0;
+            for(int j = 0; j < input[i].len; i++)
+            {
+                temp += input[i][j];
+            }
+            deno[i] = temp;
+        }
+
+        for(int i = 0; i < input.len; i++)
+        {
+            for(int j = 0; j < input[i].len; i++)
+            {
+                input[i][j] = input[i][j] / deno[i];
+            }
+        }
+    }
+}

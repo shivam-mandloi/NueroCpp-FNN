@@ -3,6 +3,7 @@
 #include <stdexcept>
 
 #include "NeuroVec.hpp"
+#include "HelpingFunc.hpp"
 
 class Relu
 {
@@ -17,9 +18,9 @@ public:
         return copyInput;
     }
 
-    std::vector<NeuroVec<double>> Backward(NeuroVec<NeuroVec<double>> prevGrad)
+    NeuroVec<NeuroVec<double>> Backward(NeuroVec<NeuroVec<double>> prevGrad)
     {
-        auto func = [](double x){x > 0 ? 1 : 0;};
+        return ReluGradFunction<double>(prevGrad, savedInput);
     }
 private:
     NeuroVec<NeuroVec<double>> savedInput;

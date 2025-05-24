@@ -172,6 +172,18 @@ void ApplyFunction(NeuroVec<NeuroVec<T>> &mat, function<T(T)> func)
     }
 }
 
+template<typename T>
+void ClipMatrix(NeuroVec<NeuroVec<T>> &mat, T min, T max)
+{
+    for (int i = 0; i < mat.len; i++)
+    {
+        for(int j = 0; j < mat[0].len; j++)
+        {
+            mat[i][j] = std::min(std::max(min, mat[i][j]), max);
+        }
+    }
+}
+
 template <typename T>
 std::ostream &operator<<(std::ostream &os, const std::vector<T> &vec)
 {
