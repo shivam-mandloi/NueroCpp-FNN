@@ -79,3 +79,37 @@ void SoftmaxCalculate(NeuroVec<NeuroVec<double>> &input)
         }
     }
 }
+
+NeuroVec<NeuroVec<double>> SoftmaxDerivative(NeuroVec<NeuroVec<double>> &prevGrad, NeuroVec<NeuroVec<double>> &prob)
+{
+    NeuroVec<NeuroVec<double>> res = CreateMatrix<double>(prevGrad.len, prob[0].len, 0);
+    for(int k = 0; k < prevGrad.len; k++)
+    {
+        for(int i = 0; i < prob[k].len; i++)
+        {
+            NeuroVec<double> copyProb = CopyVector<double>(prob[k]);
+            copyProb[i] = copyProb[i] - 1;
+            copyProb = scalar2vecMul<double>(-copyProb[i], copyProb);
+            res[k][i] = vec2vecMul(copyProb, prevGrad[k]);
+        }
+    }
+    return res;
+}
+
+NeuroVec<NeuroVec<double>> Linear(NeuroVec<NeuroVec<double>> &input, NeuroVec<NeuroVec<double>> &weight, NeuroVec<double> &bias)
+{
+    NeuroVec<NeuroVec<double>> resMat = CreateMatrix<double>(input.len, weight.len, 0);
+    for(int i = 0; i < input.len; i++)
+    {
+        for(int j = 0; j < weight.len; j++)
+        {
+            double temp = 0;
+            for(int k = 0; k < weight[j].len; k++)
+            {
+                temp += (weight[j][k] * input[i][k]);
+            }
+            resMat[i][j] = temp + bias[j];
+        }
+    }
+    return resMat;
+}

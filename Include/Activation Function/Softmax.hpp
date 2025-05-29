@@ -10,15 +10,16 @@ public:
 
     NeuroVec<NeuroVec<double>> Forward(NeuroVec<NeuroVec<double>> &input)
     {
-        savedInput = CopyMatrix<double>(input);
         NeuroVec<NeuroVec<double>> copyInput = CopyMatrix<double>(input);
         SoftmaxCalculate(copyInput);
+        savedProb = CopyMatrix<double>(copyInput);
+        return copyInput;
     }
 
-    NeuroVec<NeuroVec<double>> Backward(NeuroVec<NeuroVec<double>> &input)
+    NeuroVec<NeuroVec<double>> Backward(NeuroVec<NeuroVec<double>> &prevGrad)
     {
-        
+        return SoftmaxDerivative(prevGrad, savedProb);
     }
 private:
-    NeuroVec<NeuroVec<double>> savedInput;
+    NeuroVec<NeuroVec<double>> savedProb;
 };

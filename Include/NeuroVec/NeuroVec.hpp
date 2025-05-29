@@ -80,6 +80,25 @@ NeuroVec<NeuroVec<T>> scalar2MatMul(T scalar, const NeuroVec<NeuroVec<T>> &mat)
 }
 
 template<typename T>
+NeuroVec<NeuroVec<T>> Mat2MatMul(NeuroVec<NeuroVec<T>> mat1, NeuroVec<NeuroVec<T>> mat2)
+{
+    NeuroVec<NeuroVec<T>> resMat = CreateMatrix<T>(mat1.len, mat2[0].len);
+    for(int i = 0; i < mat1.len; i++)
+    {
+        for(int j = 0; j < mat1[i].len; j++)
+        {
+            T temp = 0;
+            for(int k = 0; k < mat2.len; k++)
+            {
+                temp += mat1[i][k] * mat2[k][j];
+            }
+            resMat[i][j] = temp;
+        }
+    }
+    return resMat;
+}
+
+template<typename T>
 NeuroVec<NeuroVec<T>> HadamardOverBatch(NeuroVec<NeuroVec<T>> mat1, NeuroVec<NeuroVec<T>> mat2)
 {
     NeuroVec<NeuroVec<T>> res = CreateMatrix<T>(mat1.len, mat1[0].len, 0);
@@ -158,6 +177,17 @@ NeuroVec<NeuroVec<T>> CopyMatrix(const NeuroVec<NeuroVec<T>> &mat)
         }
     }
     return copyMat;
+}
+
+template<typename T>
+NeuroVec<T> CopyVector(const NeuroVec<T> vec)
+{
+    NeuroVec<T> copyVec = CreateVector<T>(vec.len, 0);
+    for(int i = 0; i < vec.len; i++)
+    {
+        copyVec[i] = vec[i];
+    }
+    return copyVec;
 }
 
 template<typename T>
