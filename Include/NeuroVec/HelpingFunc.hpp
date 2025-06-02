@@ -96,7 +96,7 @@ NeuroVec<NeuroVec<double>> SoftmaxDerivative(NeuroVec<NeuroVec<double>> &prevGra
     return res;
 }
 
-NeuroVec<NeuroVec<double>> Linear(NeuroVec<NeuroVec<double>> &input, NeuroVec<NeuroVec<double>> &weight, NeuroVec<double> &bias)
+NeuroVec<NeuroVec<double>> LinearF(NeuroVec<NeuroVec<double>> &input, NeuroVec<NeuroVec<double>> &weight, NeuroVec<double> &bias)
 {
     NeuroVec<NeuroVec<double>> resMat = CreateMatrix<double>(input.len, weight.len, 0);
     for(int i = 0; i < input.len; i++)
@@ -112,4 +112,43 @@ NeuroVec<NeuroVec<double>> Linear(NeuroVec<NeuroVec<double>> &input, NeuroVec<Ne
         }
     }
     return resMat;
+}
+
+NeuroVec<NeuroVec<double>> LinearBAndUpdate(NeuroVec<NeuroVec<double>> &input, NeuroVec<NeuroVec<double>> &prevGrad, NeuroVec<NeuroVec<double>> &weight, NeuroVec<double> &bias)
+{
+    NeuroVec<NeuroVec<double>> dldw = CreateMatrix<double>(weight.len, weight[0].len, 0);
+    NeuroVec<double> dldb = CreateVector<double>(bias.len, 0);
+    NeuroVec<NeuroVec<double>> dldx = CreateMatrix<double>(input.len, weight[0].len, 0);
+    for(int i = 0; i < prevGrad.len; i++)
+    {
+        for(int j = 0; j < prevGrad[i].len; j++)
+        {
+            for(int k = 0; k < input[i].len; k++)
+            {
+                dldw[j][k] += (prevGrad[i][j] * input[i][k]);
+            }
+        }
+    }
+    dldw = scalar2MatMul<double>(1/prevGrad.len, dldw);
+    for(int i = 0; i < prevGrad.len; i++)
+    {
+        for(int j = 0; j < prevGrad[i].len; j++)
+        {
+            dldb[j] += prevGrad[i][j];
+        }
+    }
+    dldb = scalar2vecMul<double>(1/prevGrad.len, dldb);
+    for(int i = 0; i < prevGrad.len; i++)
+    {
+        for(int j = 0; j < weight[0].len; j++)
+        {
+            double temp = 0;
+            for(int k = 0; k < prevGrad[i].len; k++)
+            {
+                temp += (prevGrad[i][k] * weight[k][j]);
+            }
+            dldx[i][j] = temp;
+        }
+    }
+    return dldx;
 }
