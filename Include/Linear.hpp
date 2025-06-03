@@ -1,6 +1,5 @@
 #pragma once
 
-
 #include "NeuroVec.hpp"
 #include "CrossEntropyLossFunction.hpp"
 #include "HelpingFunc.hpp"
@@ -14,14 +13,14 @@ public:
         bias = CreateRandomVector<double>(outputDim);
     }
 
-    NeuroVec<NeuroVec<double>> Forward(NeuroVec<NeuroVec<double>> input)
+    NeuroVec<NeuroVec<double>> Forward(NeuroVec<NeuroVec<double>> &input)
     {
         NeuroVec<NeuroVec<double>> output = LinearF(input, weight, bias);
         saveInput = CopyMatrix<double>(input);
         return output;
     }
 
-    NeuroVec<NeuroVec<double>> Backward(NeuroVec<NeuroVec<double>> prevGrad)
+    NeuroVec<NeuroVec<double>> Backward(NeuroVec<NeuroVec<double>> &prevGrad)
     {
         return LinearBAndUpdate(saveInput, prevGrad, weight, bias);
     }

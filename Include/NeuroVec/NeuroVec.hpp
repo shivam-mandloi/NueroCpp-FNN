@@ -4,8 +4,32 @@
 #include <vector>
 #include <ctime>
 #include <functional>
+#include <string>
+#include <fstream>
 
 #include "NeuroVecCore.hpp"
+
+template <typename T>
+std::ostream &operator<<(std::ostream &os, const std::vector<T> &vec)
+{
+    try
+    {
+        os << "[";
+        for (int i = 0; i < vec.size(); i++)
+        {
+            os << vec[i];
+            if (i != vec.size() - 1)
+                os << ", ";
+        }
+        os << "]";
+        os << std::endl;
+        return os;
+    }
+    catch (const std::exception &e)
+    {
+        std::cerr << e.what() << '\n';
+    }
+}
 
 // random function use time as a seed, but if two function call are simultaneously that time not increase.
 // for that reason add randCount to time, and increase randCount by one everytime.
@@ -191,7 +215,7 @@ NeuroVec<T> CopyVector(const NeuroVec<T> vec)
 }
 
 template<typename T>
-void ApplyFunction(NeuroVec<NeuroVec<T>> &mat, function<T(T)> func)
+void ApplyFunction(NeuroVec<NeuroVec<T>> &mat, std::function<T(T)> func)
 {
     for(int i = 0; i < mat.len; i++)
     {
@@ -214,24 +238,58 @@ void ClipMatrix(NeuroVec<NeuroVec<T>> &mat, T min, T max)
     }
 }
 
-template <typename T>
-std::ostream &operator<<(std::ostream &os, const std::vector<T> &vec)
+template<typename T>
+NeuroVec<T> ConvertVectorToNeuroVec(std::vector<T> arr)
 {
-    try
+    NeuroVec<T> resArr = CreateVector<T>(arr.size(), 0);
+    for(int i = 0; i < arr.size(); i++)
     {
-        os << "[";
-        for (int i = 0; i < vec.size(); i++)
+        resArr[i] = arr[i];
+    }
+    return resArr;
+}
+
+std::vector<double> SplitString(std::string str)
+{
+    /*
+        take string a = "1 2 3 4 5" and return numpy<double> arr = {1, 2, 3, 4, 5} type = double
+    */
+    std::vector<double> arr;
+    std::string temp;
+    for(int i = 0; i < str.size(); i++)
+    {
+        if(str[i] == ' ')
         {
-            os << vec[i];
-            if (i != vec.size() - 1)
-                os << ", ";
+            if(temp != " " && temp != "")
+                arr.push_back(std::stod(temp));
+            temp = "";
+            continue;
         }
-        os << "]";
-        os << std::endl;
-        return os;
+        temp += str[i];
     }
-    catch (const std::exception &e)
+    if(temp != "" && temp != " ")
+        arr.push_back(std::stod(temp));
+    return arr;
+}
+
+
+std::vector<NeuroVec<double>> ReadTxtFile(std::string path)
+{
+    std::fstream newFile;
+    std::string temp;
+    std::vector<NeuroVec<double>> res;
+
+    newFile.open(path, std::ios::in);
+    if (!newFile.is_open())
     {
-        std::cerr << e.what() << '\n';
+        std::cerr << "Error: Could not open file " << path << std::endl;
+        exit(0);
     }
+
+    while (getline(newFile, temp))
+    {        
+        if (temp != "")
+            res.push_back(ConvertVectorToNeuroVec(SplitString(temp)));
+    }
+    return res;
 }

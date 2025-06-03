@@ -1,6 +1,7 @@
 #pragma once
 
 #include "NeuroVec.hpp"
+#include "SGD.hpp"
 
 template<typename T>
 NeuroVec<T> FindCrossLoss(NeuroVec<NeuroVec<T>> &predicted, NeuroVec<NeuroVec<T>> &groundTruth)
@@ -36,7 +37,7 @@ NeuroVec<NeuroVec<T>> CrossBackProp(NeuroVec<NeuroVec<T>> &predicted, NeuroVec<N
 template<typename T>
 NeuroVec<NeuroVec<T>> ReluGradFunction(NeuroVec<NeuroVec<T>> &prevGrad, NeuroVec<NeuroVec<T>> &input)
 {
-    NeuroVec<NeuroVec<T>> grad = CreateMatrix<T>(predicted.len, predicted[0].len, 0);
+    NeuroVec<NeuroVec<T>> grad = CreateMatrix<T>(prevGrad.len, prevGrad[0].len, 0);
     for(int i = 0; i < prevGrad.len; i++)
     {
         for(int j = 0; j < prevGrad[i].len; j++)
@@ -119,6 +120,7 @@ NeuroVec<NeuroVec<double>> LinearBAndUpdate(NeuroVec<NeuroVec<double>> &input, N
     NeuroVec<NeuroVec<double>> dldw = CreateMatrix<double>(weight.len, weight[0].len, 0);
     NeuroVec<double> dldb = CreateVector<double>(bias.len, 0);
     NeuroVec<NeuroVec<double>> dldx = CreateMatrix<double>(input.len, weight[0].len, 0);
+    SGD sgd;
     for(int i = 0; i < prevGrad.len; i++)
     {
         for(int j = 0; j < prevGrad[i].len; j++)
@@ -150,5 +152,6 @@ NeuroVec<NeuroVec<double>> LinearBAndUpdate(NeuroVec<NeuroVec<double>> &input, N
             dldx[i][j] = temp;
         }
     }
+    sgd.Update(weight, bias, dldw, dldb);
     return dldx;
 }
