@@ -12,9 +12,9 @@ NeuroVec<T> FindCrossLoss(NeuroVec<NeuroVec<T>> &predicted, NeuroVec<NeuroVec<T>
         T temp = 0;
         for(int j = 0; j < predicted[i].len; j++)
         {
-            temp += groundTruth[i][j] * std::log(std::max(predicted[i][j], 1e-15));
+            temp += (groundTruth[i][j] * std::log(std::max(predicted[i][j], 1e-15)));
         }
-        res[i] = -temp;
+        res[i] = temp;
     }
     return res;
 }
@@ -55,7 +55,6 @@ void SoftmaxCalculate(NeuroVec<NeuroVec<double>> &input)
     NeuroVec<NeuroVec<double>> grad = CreateMatrix<double>(input.len, input[0].len, 0);
     for(int i = 0; i < input.len; i++)
     {
-        
         ClipMatrix<double>(input, -200.0, 200.0);
         auto func = [&](double val)->double{return exp(val);};
         
@@ -64,16 +63,15 @@ void SoftmaxCalculate(NeuroVec<NeuroVec<double>> &input)
         for(int i = 0; i < deno.len; i++)
         {
             double temp = 0;
-            for(int j = 0; j < input[i].len; i++)
+            for(int j = 0; j < input[i].len; j++)
             {
                 temp += input[i][j];
             }
             deno[i] = temp;
         }
-
         for(int i = 0; i < input.len; i++)
         {
-            for(int j = 0; j < input[i].len; i++)
+            for(int j = 0; j < input[i].len; j++)
             {
                 input[i][j] = input[i][j] / deno[i];
             }
@@ -131,7 +129,8 @@ NeuroVec<NeuroVec<double>> LinearBAndUpdate(NeuroVec<NeuroVec<double>> &input, N
             }
         }
     }
-    dldw = scalar2MatMul<double>(1/prevGrad.len, dldw);
+    
+    // dldw = scalar2MatMul<double>(1/prevGrad.len, dldw);
     for(int i = 0; i < prevGrad.len; i++)
     {
         for(int j = 0; j < prevGrad[i].len; j++)
@@ -139,7 +138,7 @@ NeuroVec<NeuroVec<double>> LinearBAndUpdate(NeuroVec<NeuroVec<double>> &input, N
             dldb[j] += prevGrad[i][j];
         }
     }
-    dldb = scalar2vecMul<double>(1/prevGrad.len, dldb);
+    // dldb = scalar2vecMul<double>(1/prevGrad.len, dldb);
     for(int i = 0; i < prevGrad.len; i++)
     {
         for(int j = 0; j < weight[0].len; j++)
@@ -152,6 +151,20 @@ NeuroVec<NeuroVec<double>> LinearBAndUpdate(NeuroVec<NeuroVec<double>> &input, N
             dldx[i][j] = temp;
         }
     }
+    // std::cout << "prevGrad: " << std::endl;
+    // Print<double>(prevGrad);
+    // std::cout << "weight:" << std::endl;
+    // Print<double>(weight);
+    // std::cout << "Bias" << std::endl;
+    // Print<double>(bias);
+    
+    std::cout << "Bias Change" << std::endl;
+    Print<double>(dldb);
+    std::cout << std::endl;
+    
+    std::cout << "Weight Change" << std::endl;
+    Print<double>(dldw);
+
     sgd.Update(weight, bias, dldw, dldb);
     return dldx;
 }

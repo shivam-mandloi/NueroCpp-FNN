@@ -23,6 +23,7 @@ struct nn
         input = rl2.Forward(input);
         input = li3.Forward(input);
         input = sf.Forward(input);
+        // Print<double>(input);
         return input;
     }
 
@@ -30,10 +31,20 @@ struct nn
     {
         NeuroVec<NeuroVec<double>> grad = crsLoss.Backward();
         grad = sf.Backward(grad);
+        // Print<double>(grad);
+        // cout << endl;
         grad = li3.Backward(grad);
+        // Print<double>(grad);
+        // cout << "Relu Next" << endl;
         grad = rl2.Backward(grad);
+        // Print<double>(grad);
+        // cout << endl;
         grad = li2.Backward(grad);
+        // Print<double>(grad);
+        // cout << "Relu Next" << endl;
         grad = rl1.Backward(grad);
+        // Print<double>(grad);
+        // cout << endl;
         li1.Backward(grad);
     }
 
@@ -60,41 +71,48 @@ int main()
 {
     string path = "C:\\Users\\shiva\\Desktop\\IISC\\code\\NeuroCpp\\NueroCpp-FNN\\Data\\Iris.txt";
     vector<NeuroVec<double>> res = ReadTxtFile(path);
-    cout << res.size() << "X" << res[0].len << endl;
     
 
     int batchSize = 5;
     vector<NeuroVec<NeuroVec<double>>> data; 
-    vector<NeuroVec<double>> actual;
+    vector<NeuroVec<int>> actual;
     NeuroVec<NeuroVec<double>> tempData = CreateMatrix<double>(batchSize, res[0].len - 1, 0);
-    NeuroVec<double> tempTarget = CreateVector<double>(batchSize, 0);
+    NeuroVec<int> tempTarget = CreateVector<int>(batchSize, 0);
     int k = 0;
     for(int i = 0; i < res.size(); i++)
     {
-        cout << "start " << endl;
-        Print(tempData);
         for(int j = 0; j < res[i].len - 1; j++)
         {
-            tempData[i][j] = res[i][j];
+            tempData[k][j] = res[i][j];
         }
-        tempTarget[i] = res[i][res.size()-1];
+
+        tempTarget[k] = res[i][res[0].len-1];
         k += 1;
         if(k == batchSize)
         {
-            data.push_back(CopyMatrix<double>(tempData));
+            data.push_back(tempData);
             actual.push_back(tempTarget);
             tempData = CreateMatrix<double>(batchSize, res[0].len - 1, 0);
-            tempTarget = CreateVector<double>(batchSize, 0);
+            tempTarget = CreateVector<int>(batchSize, 0);
             k = 0;
         }
     }
 
-    for(int i = 0; i < data.size(); i++)
+    // cout << "Dimension: " << endl;
+    // cout << data.size() << "X" << data[0].len << endl;
+    // cout << actual.size() << "X" << actual[0].len << endl;
+
+    nn nueral;
+    for(int epoch = 1; epoch < 5; epoch++)
     {
-        Print(data[i]);
-        cout << "-------------" << endl;
-        Print(actual[i]);
-        cout << "=============" << endl;
+        for(int i = 0; i < data.size(); i++)
+        {
+            // cout << data[i].len << "X" << data[i][0].len << endl;
+            nueral.Forward(data[i]);
+            double loss = nueral.loss(data[i], actual[i]);
+            cout << "Epoch: " << epoch << "|" << "loss: " << loss << endl;
+        }
     }
+    cout << "Done" << endl;
     return 0;
 }
