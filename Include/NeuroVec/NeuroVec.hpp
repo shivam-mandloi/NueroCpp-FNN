@@ -160,12 +160,12 @@ NeuroVec<T> CreateRandomVector(int size, double mean = 0, double variance = 1.0)
     randCount++;
     std::mt19937 gen(uniqueNumber);
 
-    std::uniform_real_distribution<> gaussian(mean, variance);
+    std::normal_distribution<> gaussian(mean, std::sqrt(variance));
     for(int i = 0; i < vec.len; i++)
     {
         vec[i] = gaussian(gen);
     }
-    return vec;
+    return scalar2vecMul<double>(0.01, vec);
 }
 
 template<typename T>
@@ -177,7 +177,7 @@ NeuroVec<NeuroVec<T>> CreateRandomMatrix(int row, int col, double mean = 0.0, do
     unsigned int uniqueNumber = static_cast<unsigned int>(currentTime) + randCount;
     randCount++;
     std::mt19937 gen(uniqueNumber);
-    std::uniform_real_distribution<> gaussian(mean, variance);
+    std::normal_distribution<> gaussian(mean, std::sqrt(variance));
 
     for(int i = 0; i < mat.len; i++)
     {
@@ -187,6 +187,7 @@ NeuroVec<NeuroVec<T>> CreateRandomMatrix(int row, int col, double mean = 0.0, do
         }
     }
     return mat;
+    return scalar2MatMul<double>(0.01, mat);
 }
 
 template<typename T>

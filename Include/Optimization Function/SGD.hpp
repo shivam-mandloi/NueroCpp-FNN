@@ -10,7 +10,7 @@ class SGD
 {   
 public:
 
-    void Update(NeuroVec<NeuroVec<double>> &weight, NeuroVec<double> &bias, NeuroVec<NeuroVec<double>> &weightChange, NeuroVec<double> &biasChange, double lr = 0.01)
+    void Update(NeuroVec<NeuroVec<double>> &weight, NeuroVec<double> &bias, NeuroVec<NeuroVec<double>> &weightChange, NeuroVec<double> &biasChange, double lr = 0.001)
     {
         for(int i = 0; i < weight.len; i++)
         {

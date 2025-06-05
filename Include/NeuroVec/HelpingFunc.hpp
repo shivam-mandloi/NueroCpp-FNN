@@ -14,7 +14,7 @@ NeuroVec<T> FindCrossLoss(NeuroVec<NeuroVec<T>> &predicted, NeuroVec<NeuroVec<T>
         {
             temp += (groundTruth[i][j] * std::log(std::max(predicted[i][j], 1e-15)));
         }
-        res[i] = temp;
+        res[i] = -temp;
     }
     return res;
 }
@@ -28,7 +28,7 @@ NeuroVec<NeuroVec<T>> CrossBackProp(NeuroVec<NeuroVec<T>> &predicted, NeuroVec<N
         for(int j = 0;j < groundTruth[i].len; j++)
         {
             if(groundTruth[i][j])
-                grad[i][j] = -groundTruth[i][j] / std::max(predicted[i][j], 1e-15);
+                grad[i][j] = -groundTruth[i][j] / std::max(predicted[i][j], 1e-30);
         }
     }
     return grad;
@@ -52,29 +52,26 @@ NeuroVec<NeuroVec<T>> ReluGradFunction(NeuroVec<NeuroVec<T>> &prevGrad, NeuroVec
 
 void SoftmaxCalculate(NeuroVec<NeuroVec<double>> &input)
 {
-    NeuroVec<NeuroVec<double>> grad = CreateMatrix<double>(input.len, input[0].len, 0);
+    ClipMatrix<double>(input, -200.0, 200.0);
+    auto func = [&](double val)->double{return exp(val);};
+    
+    ApplyFunction<double>(input, func);
+    NeuroVec<double> deno = CreateVector<double>(input.len, 0);
     for(int i = 0; i < input.len; i++)
     {
-        ClipMatrix<double>(input, -200.0, 200.0);
-        auto func = [&](double val)->double{return exp(val);};
-        
-        ApplyFunction<double>(input, func);
-        NeuroVec<double> deno = CreateVector<double>(input.len, 0);
-        for(int i = 0; i < deno.len; i++)
+        double temp = 0;
+        for(int j = 0; j < input[i].len; j++)
         {
-            double temp = 0;
-            for(int j = 0; j < input[i].len; j++)
-            {
-                temp += input[i][j];
-            }
-            deno[i] = temp;
+            temp += input[i][j];
         }
-        for(int i = 0; i < input.len; i++)
+        deno[i] = temp;
+    }
+    
+    for(int i = 0; i < input.len; i++)
+    {
+        for(int j = 0; j < input[i].len; j++)
         {
-            for(int j = 0; j < input[i].len; j++)
-            {
-                input[i][j] = input[i][j] / deno[i];
-            }
+            input[i][j] = input[i][j] / deno[i];
         }
     }
 }
@@ -82,14 +79,23 @@ void SoftmaxCalculate(NeuroVec<NeuroVec<double>> &input)
 NeuroVec<NeuroVec<double>> SoftmaxDerivative(NeuroVec<NeuroVec<double>> &prevGrad, NeuroVec<NeuroVec<double>> &prob)
 {
     NeuroVec<NeuroVec<double>> res = CreateMatrix<double>(prevGrad.len, prob[0].len, 0);
-    for(int k = 0; k < prevGrad.len; k++)
+    // std::cout << "prob" << std::endl;
+    // Print<double>(prob);
+    // std::cout << std::endl;
+    for(int k = 0; k < prob.len; k++)
     {
         for(int i = 0; i < prob[k].len; i++)
         {
+            if(prevGrad[k][i] == 0)
+                continue;
             NeuroVec<double> copyProb = CopyVector<double>(prob[k]);
+            double probSave = -copyProb[i];
             copyProb[i] = copyProb[i] - 1;
-            copyProb = scalar2vecMul<double>(-copyProb[i], copyProb);
-            res[k][i] = vec2vecMul(copyProb, prevGrad[k]);
+            copyProb = scalar2vecMul<double>(probSave, copyProb);
+            for(int j = 0; j < copyProb.len; j++)
+            {
+                res[k][j] += prevGrad[k][i] * copyProb[j];
+            }
         }
     }
     return res;
@@ -129,7 +135,6 @@ NeuroVec<NeuroVec<double>> LinearBAndUpdate(NeuroVec<NeuroVec<double>> &input, N
             }
         }
     }
-    
     // dldw = scalar2MatMul<double>(1/prevGrad.len, dldw);
     for(int i = 0; i < prevGrad.len; i++)
     {
@@ -151,20 +156,16 @@ NeuroVec<NeuroVec<double>> LinearBAndUpdate(NeuroVec<NeuroVec<double>> &input, N
             dldx[i][j] = temp;
         }
     }
-    // std::cout << "prevGrad: " << std::endl;
-    // Print<double>(prevGrad);
-    // std::cout << "weight:" << std::endl;
+    // std::cout << "weight and then bias" << std::endl;
     // Print<double>(weight);
-    // std::cout << "Bias" << std::endl;
+    // std::cout << std::endl;
     // Print<double>(bias);
-    
-    std::cout << "Bias Change" << std::endl;
-    Print<double>(dldb);
-    std::cout << std::endl;
-    
-    std::cout << "Weight Change" << std::endl;
-    Print<double>(dldw);
-
+    // std::cout << std::endl;
+    // std::cout << "weight and then bias Grad" << std::endl;
+    // Print<double>(dldw);
+    // std::cout << std::endl;
+    // Print<double>(dldb);
+    // std::cout << std::endl;
     sgd.Update(weight, bias, dldw, dldb);
     return dldx;
 }
