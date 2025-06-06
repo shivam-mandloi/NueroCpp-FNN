@@ -10,12 +10,12 @@
 class Adam
 {   
 public:
-    Adam()
+    Adam(int m, int n)
     {
-        mtWeight = NeuroVec<NeuroVec<double>>();
-        mtBias = NeuroVec<double>();
-        vtWeight = NeuroVec<NeuroVec<double>>();
-        vtBias = NeuroVec<double>();
+        mtWeight = CreateMatrix<double>(m, n, 0);
+        mtBias = CreateVector<double>(m, 0);
+        vtWeight = CreateMatrix<double>(m, n, 0);
+        vtBias = CreateVector<double>(m, 0);
         b1 = 0.9;
         b2 = 0.999;
         timeStep = 1;
@@ -40,18 +40,10 @@ public:
 
         // Update both weight and bias
 
-        if(!mtWeight.size()) // Size is equal to zero, then intialize the mtWeight, vtWeight, mtBias, vtBias with zero
-        {
-            mtWeight = NeuroVec<NeuroVec<double>>(weightChange.size(), NeuroVec<double>(weightChange[0].size(), 0));
-            mtBias = NeuroVec<double>(biasChange.size(), 0);
-            vtWeight = NeuroVec<NeuroVec<double>>(weightChange.size(), NeuroVec<double>(weightChange[0].size(), 0));
-            vtBias = NeuroVec<double>(biasChange.size(), 0);
-        }
-
         // m'(t) = b1 * m'(t-1) + (1 - b1) * g(t) 
-        for(int i = 0; i < mtWeight.size(); i++)
+        for(int i = 0; i < mtWeight.len; i++)
         {
-            for(int j = 0; j < mtWeight[i].size(); j++)
+            for(int j = 0; j < mtWeight[i].len; j++)
             {
                 mtWeight[i][j] = b1 * mtWeight[i][j] + (1-b1) * weightChange[i][j];
             }
@@ -59,9 +51,9 @@ public:
         }
 
         // v'(t) = b2 * v'(t-1) + (1 - b2) * (g(t) ** 2)
-        for(int i = 0; i < vtWeight.size(); i++)
+        for(int i = 0; i < vtWeight.len; i++)
         {
-            for(int j = 0; j < vtWeight[i].size(); j++)
+            for(int j = 0; j < vtWeight[i].len; j++)
             {
                 vtWeight[i][j] = b2 * vtWeight[i][j] + (1-b2) * (pow(weightChange[i][j], 2));
             }
@@ -72,9 +64,9 @@ public:
         // V(t) = v'(t) / (1 - b2**t)
         // W(t) = W(t-1) - n * (m(t) / ((V(t) ** 0.5) + eps))
         // Combine above three operations
-        for(int i = 0; i < vtWeight.size(); i++)
+        for(int i = 0; i < vtWeight.len; i++)
         {
-            for(int j = 0; j < vtWeight[i].size(); j++)
+            for(int j = 0; j < vtWeight[i].len; j++)
             {
                 double mtW = (mtWeight[i][j] / (1 - pow(b1, timeStep)));
                 double vtW = (pow(vtWeight[i][j] / (1 - pow(b2, timeStep)), 0.5)) + eps;

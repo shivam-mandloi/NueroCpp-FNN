@@ -2,6 +2,7 @@
 
 #include "NeuroVec.hpp"
 #include "SGD.hpp"
+#include "Adam.hpp"
 
 template<typename T>
 NeuroVec<T> FindCrossLoss(NeuroVec<NeuroVec<T>> &predicted, NeuroVec<NeuroVec<T>> &groundTruth)
@@ -79,9 +80,6 @@ void SoftmaxCalculate(NeuroVec<NeuroVec<double>> &input)
 NeuroVec<NeuroVec<double>> SoftmaxDerivative(NeuroVec<NeuroVec<double>> &prevGrad, NeuroVec<NeuroVec<double>> &prob)
 {
     NeuroVec<NeuroVec<double>> res = CreateMatrix<double>(prevGrad.len, prob[0].len, 0);
-    // std::cout << "prob" << std::endl;
-    // Print<double>(prob);
-    // std::cout << std::endl;
     for(int k = 0; k < prob.len; k++)
     {
         for(int i = 0; i < prob[k].len; i++)
@@ -119,7 +117,7 @@ NeuroVec<NeuroVec<double>> LinearF(NeuroVec<NeuroVec<double>> &input, NeuroVec<N
     return resMat;
 }
 
-NeuroVec<NeuroVec<double>> LinearBAndUpdate(NeuroVec<NeuroVec<double>> &input, NeuroVec<NeuroVec<double>> &prevGrad, NeuroVec<NeuroVec<double>> &weight, NeuroVec<double> &bias)
+NeuroVec<NeuroVec<double>> LinearBAndUpdate(NeuroVec<NeuroVec<double>> &input, NeuroVec<NeuroVec<double>> &prevGrad, NeuroVec<NeuroVec<double>> &weight, NeuroVec<double> &bias, Adam adm)
 {
     NeuroVec<NeuroVec<double>> dldw = CreateMatrix<double>(weight.len, weight[0].len, 0);
     NeuroVec<double> dldb = CreateVector<double>(bias.len, 0);
@@ -135,7 +133,6 @@ NeuroVec<NeuroVec<double>> LinearBAndUpdate(NeuroVec<NeuroVec<double>> &input, N
             }
         }
     }
-    // dldw = scalar2MatMul<double>(1/prevGrad.len, dldw);
     for(int i = 0; i < prevGrad.len; i++)
     {
         for(int j = 0; j < prevGrad[i].len; j++)
@@ -143,7 +140,6 @@ NeuroVec<NeuroVec<double>> LinearBAndUpdate(NeuroVec<NeuroVec<double>> &input, N
             dldb[j] += prevGrad[i][j];
         }
     }
-    // dldb = scalar2vecMul<double>(1/prevGrad.len, dldb);
     for(int i = 0; i < prevGrad.len; i++)
     {
         for(int j = 0; j < weight[0].len; j++)
@@ -156,16 +152,6 @@ NeuroVec<NeuroVec<double>> LinearBAndUpdate(NeuroVec<NeuroVec<double>> &input, N
             dldx[i][j] = temp;
         }
     }
-    // std::cout << "weight and then bias" << std::endl;
-    // Print<double>(weight);
-    // std::cout << std::endl;
-    // Print<double>(bias);
-    // std::cout << std::endl;
-    // std::cout << "weight and then bias Grad" << std::endl;
-    // Print<double>(dldw);
-    // std::cout << std::endl;
-    // Print<double>(dldb);
-    // std::cout << std::endl;
-    sgd.Update(weight, bias, dldw, dldb);
+    adm.Update(&weight, &bias, dldw, dldb);
     return dldx;
 }
