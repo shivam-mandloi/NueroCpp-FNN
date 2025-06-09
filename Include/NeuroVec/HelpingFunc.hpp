@@ -3,6 +3,7 @@
 #include "NeuroVec.hpp"
 #include "SGD.hpp"
 #include "Adam.hpp"
+#include <cmath>
 
 template<typename T>
 NeuroVec<T> FindCrossLoss(NeuroVec<NeuroVec<T>> &predicted, NeuroVec<NeuroVec<T>> &groundTruth)
@@ -153,5 +154,36 @@ NeuroVec<NeuroVec<double>> LinearBAndUpdate(NeuroVec<NeuroVec<double>> &input, N
         }
     }
     adm.Update(&weight, &bias, dldw, dldb);
+    // sgd.Update(weight, bias, dldw, dldb);
     return dldx;
+}
+
+NeuroVec<double> MseForward(NeuroVec<NeuroVec<double>> &predicted, NeuroVec<NeuroVec<double>> &groundTruth)
+{
+    NeuroVec<double> res = CreateVector<double>(predicted.len, 0);
+    for(int i = 0; i < predicted.len; i++)
+    {
+        double temp = 0;
+        for(int j = 0; j < predicted[i].len; j++)
+        {
+            temp += pow(groundTruth[i][j] - predicted[i][j], 2);
+        }
+        res[i] = (1/groundTruth[i].len) * temp;
+    }
+    // res = scalar2vecMul<double>(1/groundTruth.len, res);
+    return res;
+}
+
+NeuroVec<NeuroVec<double>> MseBackProp(NeuroVec<NeuroVec<double>> &predicted, NeuroVec<NeuroVec<double>> &groundTruth)
+{
+    NeuroVec<NeuroVec<double>> res = CreateMatrix<double>(predicted.len, predicted[0].len, 0);
+    for(int i = 0; i < predicted.len; i++)
+    {
+        for(int j = 0; j < predicted[i].len; j++)
+        {
+            res[i][j] = (-2/groundTruth[i].len) * (groundTruth[i][j] - predicted[i][j]);
+        }
+    }
+    // res = scalar2MatMul<double>(-2/groundTruth.len, res);
+    return res;
 }

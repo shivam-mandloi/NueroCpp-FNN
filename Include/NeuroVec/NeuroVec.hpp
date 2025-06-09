@@ -279,18 +279,60 @@ std::vector<NeuroVec<double>> ReadTxtFile(std::string path)
     std::fstream newFile;
     std::string temp;
     std::vector<NeuroVec<double>> res;
-
     newFile.open(path, std::ios::in);
     if (!newFile.is_open())
     {
         std::cerr << "Error: Could not open file " << path << std::endl;
         exit(0);
     }
-
+    
     while (getline(newFile, temp))
-    {        
+    {
         if (temp != "")
             res.push_back(ConvertVectorToNeuroVec(SplitString(temp)));
+    }
+    return res;
+}
+
+template<typename T>
+std::vector<NeuroVec<NeuroVec<T>>> CreateMatrixGroup(std::vector<NeuroVec<T>> &matrix, int group)
+{
+    std::vector<NeuroVec<NeuroVec<T>>> res;
+    NeuroVec<NeuroVec<T>> temp = CreateMatrix<T>(group, matrix[0].len, 0);
+    int count = 0;
+    for(int i = 0; i < matrix.size(); i++)
+    {
+        for(int j = 0; j < matrix[i].len; j++)
+        {
+            temp[count][j] = matrix[i][j];
+        }
+        count += 1;
+        if(count == group)
+        {
+            count = 0;
+            res.push_back(temp);
+            temp = CreateMatrix<double>(group, matrix[0].len, 0);
+        }
+    }
+    return res;
+}
+
+template<typename T>
+std::vector<NeuroVec<T>> CreateVectorGruop(std::vector<NeuroVec<T>> &vec, int group)
+{
+    std::vector<NeuroVec<T>> res;
+    NeuroVec<T> temp = CreateVector<T>(group, 0);
+    int count = 0;
+    for(int i = 0; i < vec.size(); i++)
+    {
+        temp[count] = vec[i][0];
+        count += 1;
+        if(count == group)
+        {
+            count = 0;
+            res.push_back(temp);
+            temp = CreateVector<T>(group, 0);
+        }
     }
     return res;
 }
