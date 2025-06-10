@@ -58,7 +58,7 @@ struct nn
 
 int main()
 {
-    string path = "C:\\Users\\shiva\\Desktop\\IISC\\code\\NeuroCpp\\NueroCpp-FNN\\Data\\Iris.txt";
+    string path = "";
     vector<NeuroVec<double>> res = ReadTxtFile(path);
     
     int batchSize = 16;
