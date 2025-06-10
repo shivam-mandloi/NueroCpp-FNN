@@ -19,23 +19,10 @@ struct nn
     NeuroVec<NeuroVec<double>> Forward(NeuroVec<NeuroVec<double>> input)
     {
         input = li1.Forward(input);
-        // cout << "Linear 1" << endl;
-        // Print<double>(input);
         input = rl1.Forward(input);
-        // cout << "relu 1" << endl;
-        // Print<double>(input);
         input = li2.Forward(input);
-        // cout << "Linear 2" << endl;
-        // Print<double>(input);
         input = rl2.Forward(input);
-        // cout << "Relu 2" << endl;
-        // Print<double>(input);
         input = li3.Forward(input);
-        // cout << "Linear 3" << endl;
-        // Print<double>(input);
-        // input = rl3.Forward(input);
-        // cout << "Relu 3" << endl;
-        // Print<double>(input);
         return input;
     }
 
@@ -71,8 +58,14 @@ struct nn
 
 int main()
 {
-    string trainPath = "C:\\Users\\shiva\\Desktop\\IISC\\code\\NeuroCpp\\NueroCpp-FNN\\Housing Data\\trainData.txt";
-    string trainTargetPath = "C:\\Users\\shiva\\Desktop\\IISC\\code\\NeuroCpp\\NueroCpp-FNN\\Housing Data\\trainTarget.txt";;
+    string trainPath = "training/data/path";
+    string trainTargetPath = "training/data/target/path";
+    string testDataPath = "testing/data/path";
+    string testTargetPath = "testing/data/target/path";
+    
+    // Training 
+    
+    cout << "Training Start..." << endl;
     int batchSize = 32;
 
     std::vector<NeuroVec<double>> data = ReadTxtFile(trainPath);
@@ -92,16 +85,31 @@ int main()
         {
             NeuroVec<NeuroVec<double>> pred = neural.Forward(batchTrainingData[batch]);
             double loss = neural.loss(pred, batchTargetData[batch]);
-
-            // cout << "actual" << endl;
-            // Print<double>(pred);
-            // cout << endl;
-            // Print<double>(batchTargetData[batch]);
-            // cout <<endl;
-            // cout << endl;
             totalLoss += loss;
         }
         cout << "Epoch: " << epoch + 1 << "| Loss: " << totalLoss << endl;
+    }
+
+    // Testing 
+
+    batchSize = 5;
+    std::vector<NeuroVec<double>> testData = ReadTxtFile(testDataPath);
+    vector<NeuroVec<NeuroVec<double>>> batchTestinggData = CreateMatrixGroup<double>(testData, batchSize);
+    
+    vector<NeuroVec<double>> targetTesting = ReadTxtFile(testTargetPath);
+    vector<NeuroVec<double>> batchTestingTargetData = CreateVectorGruop<double>(targetTesting, batchSize);
+
+    cout << batchTestinggData.size() << "X" << batchTrainingData[0].len << "X" << batchTestinggData[0][0].len << endl;
+    cout << batchTestingTargetData.size() << "X" << batchTestingTargetData[0].len << endl;
+
+    cout << "Testing Start..." << endl;
+    for(int batch = 0; batch < 10; batch++)
+    {
+        NeuroVec<NeuroVec<double>> pred = neural.Forward(batchTestinggData[batch]);
+        cout << "Prediction: " << endl;
+        Print<double>(pred);
+        cout << "Actual " << endl;
+        Print<double>(batchTestingTargetData[batch]);
     }
     return 0;
 }
